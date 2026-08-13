@@ -1,0 +1,105 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Search,
+  Bell,
+  Heart,
+  ShoppingCart,
+  ChevronDown,
+  Menu,
+} from "lucide-react";
+import { subscribeCart, getCartCount } from "../../services/cart";
+import { subscribeWishlist, getWishlistCount } from "../../services/wishlist";
+import { getCurrentUser } from "../../services/auth";
+import defaultProfile from "../../assets/users/profile.jpg";
+import "./Navbar.css";
+
+export default function Navbar({ onToggleSidebar }) {
+  const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(getCartCount());
+  const [wishlistCount, setWishlistCount] = useState(getWishlistCount());
+  const [query, setQuery] = useState("");
+
+  useEffect(
+    () =>
+      subscribeCart((cart) =>
+        setCartCount(cart.reduce((sum, i) => sum + i.quantity, 0))
+      ),
+    []
+  );
+
+  useEffect(
+    () =>
+      subscribeWishlist((list) => {
+        setWishlistCount(list.length);
+      }),
+    []
+  );
+
+  const user = getCurrentUser();
+  const firstName = user?.fullName?.split(" ")[0] || "Rahul";
+  const profileImage = user?.profileImage;
+
+  const doSearch = () => {
+    if (query.trim()) {
+      navigate("/products?q=" + encodeURIComponent(query.trim()));
+    }
+  };
+
+  return (
+    <nav className="navbar">
+
+      <button
+        className="hamburger"
+        onClick={onToggleSidebar}
+        aria-label="Open menu"
+      >
+        <Menu size={22} />
+      </button>
+
+      <div className="search-box">
+        <Search size={18} className="search-icon" />
+
+        <input
+          type="text"
+          placeholder="Search for products, brands and more..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") doSearch();
+          }}
+        />
+
+        <button onClick={doSearch}>
+          Search
+        </button>
+      </div>
+
+      <div className="nav-right">
+
+        <div className="icon">
+          <Bell size={20} />
+          <span className="badge">3</span>
+        </div>
+
+        <Link to="/wishlist" className="icon">
+          <Heart size={20} />
+          {wishlistCount > 0 && <span className="badge">{wishlistCount}</span>}
+        </Link>
+
+        <Link to="/cart" className="icon">
+          <ShoppingCart size={20} />
+          {cartCount > 0 && <span className="badge">{cartCount}</span>}
+        </Link>
+
+        <div className="profile">
+          <img src={profileImage || defaultProfile} alt="profile" />
+          <span>{firstName}</span>
+          <ChevronDown size={18} />
+        </div>
+
+      </div>
+
+    </nav>
+  );
+}
