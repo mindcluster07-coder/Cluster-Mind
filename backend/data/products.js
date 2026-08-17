@@ -1,0 +1,18 @@
+export const products = [
+  { name: 'Wireless Noise-Cancelling Headphones', category: 'Electronics', price: 129.99, oldPrice: 199.99, rating: 4.6, reviews: 1234, badge: 'Deal of the Day', image: 'https://picsum.photos/seed/headphones/400/400', stock: 120 },
+  { name: 'Smart Watch Series 5 with GPS', category: 'Electronics', price: 89.99, oldPrice: 129.99, rating: 4.4, reviews: 856, badge: 'Best Seller', image: 'https://picsum.photos/seed/smartwatch/400/400', stock: 80 },
+  { name: 'Bluetooth Earbuds Pro', category: 'Electronics', price: 59.99, oldPrice: 89.99, rating: 4.3, reviews: 2100, badge: 'Top Rated', image: 'https://picsum.photos/seed/earbuds/400/400', stock: 250 },
+  { name: '4K Ultra HD Smart TV 55 inch', category: 'Electronics', price: 499.99, oldPrice: 699.99, rating: 4.5, reviews: 342, badge: 'Limited Time', image: 'https://picsum.photos/seed/tv/400/400', stock: 40 },
+  { name: 'Classic Denim Jacket', category: 'Fashion', price: 49.99, oldPrice: 79.99, rating: 4.2, reviews: 678, image: 'https://picsum.photos/seed/jacket/400/400', stock: 90 },
+  { name: 'Running Sneakers - Comfort Plus', category: 'Fashion', price: 74.99, oldPrice: 99.99, rating: 4.5, reviews: 1432, badge: 'Best Seller', image: 'https://picsum.photos/seed/sneakers/400/400', stock: 150 },
+  { name: 'Leather Travel Backpack', category: 'Fashion', price: 59.99, rating: 4.6, reviews: 934, image: 'https://picsum.photos/seed/backpack/400/400', stock: 110 },
+  { name: 'Cotton Casual T-Shirt (Pack of 3)', category: 'Fashion', price: 24.99, oldPrice: 39.99, rating: 4.1, reviews: 560, image: 'https://picsum.photos/seed/tshirt/400/400', stock: 300 },
+  { name: 'Smart Coffee Maker', category: 'Home', price: 139.99, oldPrice: 189.99, rating: 4.4, reviews: 421, badge: 'Deal of the Day', image: 'https://picsum.photos/seed/coffee/400/400', stock: 60 },
+  { name: 'Modern LED Desk Lamp', category: 'Home', price: 34.99, oldPrice: 49.99, rating: 4.5, reviews: 745, image: 'https://picsum.photos/seed/lamp/400/400', stock: 180 },
+  { name: 'HEPA Air Purifier', category: 'Home', price: 159.99, rating: 4.3, reviews: 289, image: 'https://picsum.photos/seed/purifier/400/400', stock: 45 },
+  { name: 'Organic Skincare Kit', category: 'Beauty', price: 44.99, oldPrice: 59.99, rating: 4.6, reviews: 1320, badge: 'Top Rated', image: 'https://picsum.photos/seed/skincare/400/400', stock: 200 },
+  { name: 'Pro Ionic Hair Dryer', category: 'Beauty', price: 39.99, rating: 4.2, reviews: 654, image: 'https://picsum.photos/seed/dryer/400/400', stock: 140 },
+  { name: 'Premium Yoga Mat Pro', category: 'Sports', price: 29.99, oldPrice: 44.99, rating: 4.4, reviews: 987, image: 'https://picsum.photos/seed/yoga/400/400', stock: 220 },
+  { name: 'Adjustable Dumbbell Set', category: 'Sports', price: 89.99, rating: 4.3, reviews: 312, badge: 'Best Seller', image: 'https://picsum.photos/seed/dumbbells/400/400', stock: 70 },
+  { name: 'The Art of AI Marketing (Hardcover)', category: 'Books', price: 19.99, oldPrice: 29.99, rating: 4.7, reviews: 856, badge: 'Top Rated', image: 'https://picsum.photos/seed/book/400/400', stock: 500 },
+]
