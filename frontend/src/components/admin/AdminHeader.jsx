@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Menu, Bell, ChevronDown, LogOut, User } from 'lucide-react'
-import SearchBar from './SearchBar'
-import DateRangePicker from './DateRangePicker'
-import { NAV_ITEMS } from './MarketingSidebar'
-import { NOTIFICATIONS, CURRENT_DATE_RANGE } from '../../data/marketingMockData'
+import SearchBar from '../../components/marketing/SearchBar'
+import DateRangePicker from '../../components/marketing/DateRangePicker'
+import { ADMIN_NAV_ITEMS } from './AdminSidebar'
+import { ADMIN_NOTIFICATIONS, CURRENT_DATE_RANGE } from '../../data/adminMockData'
 
-export default function MarketingHeader({ onMenu }) {
+export default function AdminHeader({ onMenu }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
@@ -16,10 +16,10 @@ export default function MarketingHeader({ onMenu }) {
   const notifRef = useRef(null)
   const profileRef = useRef(null)
 
-  const current = NAV_ITEMS.find((n) =>
+  const current = ADMIN_NAV_ITEMS.find((n) =>
     n.end ? location.pathname === n.to : location.pathname.startsWith(n.to),
   )
-  const title = current?.label || 'Marketing & AI Dashboard'
+  const title = current?.label || 'Admin Dashboard'
 
   useEffect(() => {
     const handler = (e) => {
@@ -31,7 +31,7 @@ export default function MarketingHeader({ onMenu }) {
   }, [])
 
   const user = JSON.parse(localStorage.getItem('shopsmart_user') || '{}')
-  const name = user.name || 'Marketing Team'
+  const name = user.name || 'Admin'
   const initials = name
     .split(' ')
     .map((w) => w[0])
@@ -58,7 +58,7 @@ export default function MarketingHeader({ onMenu }) {
 
       <div className="min-w-0">
         <h1 className="truncate text-lg font-bold text-slate-900">{title}</h1>
-        <p className="hidden text-xs text-slate-500 sm:block">Marketing & AI Console</p>
+        <p className="hidden text-xs text-slate-500 sm:block">Administration Console</p>
       </div>
 
       <div className="ml-auto flex items-center gap-2.5 sm:gap-3">
@@ -77,12 +77,12 @@ export default function MarketingHeader({ onMenu }) {
               setNotifOpen((o) => !o)
               setProfileOpen(false)
             }}
-            className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 transition hover:border-violet-300 hover:text-violet-700"
+            className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 transition hover:border-red-300 hover:text-red-600"
             aria-label="Notifications"
           >
             <Bell className="h-[18px] w-[18px]" />
             <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-              {NOTIFICATIONS.filter((n) => n.unread).length}
+              {ADMIN_NOTIFICATIONS.filter((n) => n.unread).length}
             </span>
           </button>
 
@@ -92,9 +92,9 @@ export default function MarketingHeader({ onMenu }) {
                 <p className="text-sm font-bold text-slate-900">Notifications</p>
               </div>
               <ul className="max-h-72 overflow-y-auto">
-                {NOTIFICATIONS.map((n, i) => (
+                {ADMIN_NOTIFICATIONS.map((n, i) => (
                   <li key={i} className="flex items-start gap-2.5 px-3 py-3 transition hover:bg-slate-50">
-                    {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-violet-500" />}
+                    {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />}
                     <div className={n.unread ? '' : 'pl-3.5'}>
                       <p className="text-sm text-slate-700">{n.title}</p>
                       <p className="text-xs text-slate-400">{n.time}</p>
@@ -112,9 +112,9 @@ export default function MarketingHeader({ onMenu }) {
               setProfileOpen((o) => !o)
               setNotifOpen(false)
             }}
-            className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-1.5 pr-2.5 transition hover:border-violet-300"
+            className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-1.5 pr-2.5 transition hover:border-red-300"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 text-xs font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-600 to-orange-600 text-xs font-bold text-white">
               {initials}
             </div>
             <span className="hidden text-sm font-semibold text-slate-800 sm:block">{name}</span>
@@ -126,7 +126,7 @@ export default function MarketingHeader({ onMenu }) {
               <button
                 onClick={() => {
                   setProfileOpen(false)
-                  navigate('/marketing/settings')
+                  navigate('/admin/profile')
                 }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
               >

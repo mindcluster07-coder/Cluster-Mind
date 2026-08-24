@@ -1,11 +1,7 @@
 import 'dotenv/config'
 import mongoose from 'mongoose'
-import bcrypt from 'bcryptjs'
 import connectDB from './db.js'
-import Admin from './models/Admin.js'
-import MarketingTeam from './models/MarketingTeam.js'
-import Product from './models/Product.js'
-import { products } from './data/products.js'
+import { seedAll } from './seedData.js'
 
 const collections = [
   'users',
@@ -18,6 +14,16 @@ const collections = [
   'campaigns',
   'coupons',
   'loyalties',
+  'admincustomers',
+  'adminorders',
+  'admincampaigns',
+  'refundrequests',
+  'feedbackentries',
+  'appnotifications',
+  'teamusers',
+  'activitylogs',
+  'mlmodels',
+  'predictionlogs',
 ]
 
 async function seed() {
@@ -28,31 +34,7 @@ async function seed() {
   }
   console.log('Collections ready:', collections.join(', '))
 
-  await Admin.deleteMany({})
-  await Admin.create({
-    username: 'admin',
-    password: await bcrypt.hash('admin123', 10),
-    email: 'admin@shopsmart.com',
-  })
-
-  await MarketingTeam.deleteMany({})
-  await MarketingTeam.create([
-    {
-      username: 'marketing',
-      password: await bcrypt.hash('marketing123', 10),
-      email: 'marketing@shopsmart.com',
-      department: 'Marketing',
-    },
-    {
-      username: 'aiml',
-      password: await bcrypt.hash('aiml123', 10),
-      email: 'aiml@shopsmart.com',
-      department: 'AI/ML',
-    },
-  ])
-
-  await Product.deleteMany({})
-  await Product.insertMany(products)
+  await seedAll()
 
   console.log('\nDatabase seeded successfully!')
   console.log('Login credentials:')

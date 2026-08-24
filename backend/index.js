@@ -3,6 +3,7 @@ import cors from 'cors'
 import 'dotenv/config'
 import connectDB from './db.js'
 import authRoutes from './routes/auth.js'
+import adminRoutes from './routes/admin.js'
 
 const app = express()
 const port = process.env.PORT || 4000
@@ -15,6 +16,12 @@ app.get('/api/health', (req, res) => {
 })
 
 app.use('/api/auth', authRoutes)
+app.use('/api/admin', adminRoutes)
+
+app.use((err, req, res, next) => {
+  console.error(err.message)
+  res.status(500).json({ message: 'Internal server error' })
+})
 
 export default app
 
