@@ -18,19 +18,6 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           {adminRoutes()}
-          <Route path="/dashboard" element={<CustomerOnly><Home /></CustomerOnly>} />
-          <Route path="/products" element={<CustomerOnly><Products /></CustomerOnly>} />
-          <Route path="/products/:id" element={<CustomerOnly><ProductDetails /></CustomerOnly>} />
-          <Route path="/cart" element={<CustomerOnly><Cart /></CustomerOnly>} />
-          <Route path="/wishlist" element={<CustomerOnly><Wishlist /></CustomerOnly>} />
-          <Route path="/checkout" element={<CustomerOnly><Checkout /></CustomerOnly>} />
-          <Route path="/order-success/:orderId" element={<CustomerOnly><OrderSuccess /></CustomerOnly>} />
-          <Route path="/orders" element={<CustomerOnly><Orders /></CustomerOnly>} />
-          <Route path="/profile" element={<CustomerOnly><Profile /></CustomerOnly>} />
-          <Route path="/feedback" element={<CustomerOnly><Feedback /></CustomerOnly>} />
-          <Route path="/help" element={<CustomerOnly><Help /></CustomerOnly>} />
-          <Route path="/product-images" element={<CustomerOnly><ProductImages /></CustomerOnly>} />
-          <Route path="/category/:category" element={<CustomerOnly><CategoryProducts /></CustomerOnly>} />
           {marketingRoutes()}
           <Route path="*" element={<HomePage />} />
         </Routes>
