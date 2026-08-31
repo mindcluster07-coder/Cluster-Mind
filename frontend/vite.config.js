@@ -11,6 +11,10 @@ export default defineConfig({
       protocol: 'ws',
     },
     proxy: {
+      '/api/ml': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
       '/api': 'http://localhost:4000',
     },
   },
