@@ -6,6 +6,7 @@ import Admin from './models/Admin.js'
 import MarketingTeam from './models/MarketingTeam.js'
 import Product from './models/Product.js'
 import { products } from './data/products.js'
+import { seedAdminData } from './seedAdminData.js'
 
 const collections = [
   'users',
@@ -18,6 +19,16 @@ const collections = [
   'campaigns',
   'coupons',
   'loyalties',
+  'admincustomers',
+  'adminorders',
+  'admincampaigns',
+  'refundrequests',
+  'feedbackentries',
+  'appnotifications',
+  'teamusers',
+  'activitylogs',
+  'mlmodels',
+  'predictionlogs',
 ]
 
 async function seed() {
@@ -53,6 +64,8 @@ async function seed() {
 
   await Product.deleteMany({})
   await Product.insertMany(products)
+
+  await seedAdminData()
 
   console.log('\nDatabase seeded successfully!')
   console.log('Login credentials:')
