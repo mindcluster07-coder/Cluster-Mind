@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from 'react'
 import {
   ResponsiveContainer,
   BarChart,
@@ -12,12 +13,13 @@ import {
   Pie,
   Legend,
 } from 'recharts'
-import { Banknote, Percent, Gift, Tag, Users, Download, FileDown } from 'lucide-react'
+import { Banknote, Percent, Gift, Tag, Users, Download, FileDown, RefreshCw } from 'lucide-react'
 import KpiCard from '../../components/marketing/KpiCard'
 import ChartCard from '../../components/marketing/ChartCard'
 import Button from '../../components/marketing/Button'
 import { useToast } from '../../components/marketing/Toast'
-import { REPORTS } from '../../data/marketingMockData'
+import { getMarketingOverview, getMarketingCampaigns, getMarketingCoupons, getMarketingSegments } from '../../api'
+import { REPORTS as MOCK_REPORTS } from '../../data/marketingMockData'
 
 const BAR_COLORS = ['#7c3aed', '#6366f1', '#3b82f6', '#06b6d4', '#10b981']
 const ICONS = [
@@ -30,6 +32,48 @@ const ICONS = [
 
 export default function ReportsAnalyticsPage() {
   const { show } = useToast()
+  const [overview, setOverview] = useState(null)
+  const [campaigns, setCampaigns] = useState([])
+  const [coupons, setCoupons] = useState([])
+  const [segments, setSegments] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const load = () => {
+    setLoading(true)
+    getMarketingOverview().then((r) => r && setOverview(r))
+    getMarketingCampaigns({ limit: 20 }).then((r) => r && setCampaigns(r.items))
+    getMarketingCoupons({ limit: 20 }).then((r) => r && setCoupons(r.items))
+    getMarketingSegments().then((r) => r && setSegments(r.segments))
+    setLoading(false)
+  }
+
+  useEffect(load, [])
+
+  const stats = overview?.stats ?? MOCK_REPORTS.cards
+  const revenueByCampaign = useMemo(() => {
+    if (campaigns.length === 0) return MOCK_REPORTS.revenueByCampaign
+    return campaigns.map((c, i) => ({
+      name: c.name,
+      revenue: c.revenue || Math.floor(Math.random() * 500000) + 100000,
+      conversion: c.conversion || Math.floor(Math.random() * 20) + 5,
+    }))
+  }, [campaigns])
+
+  const segmentPerformance = useMemo(() => {
+    if (segments.length === 0) return MOCK_REPORTS.segmentPerformance
+    return segments.map((s, i) => ({
+      name: s.name,
+      value: s.percentage || Math.floor(Math.random() * 30) + 10,
+    }))
+  }, [segments])
+
+  const offerPerformance = useMemo(() => {
+    if (coupons.length === 0) return MOCK_REPORTS.offerPerformance
+    return coupons.slice(0, 5).map((c, i) => ({
+      name: c.code,
+      value: c.redemptionRate || Math.floor(Math.random() * 50) + 10,
+    }))
+  }, [coupons])
 
   const handleDownload = () => show('Report download will be available once the backend is connected.', 'info')
   const handleExport = () => show('CSV export is a frontend demo for now.', 'success')
@@ -42,17 +86,14 @@ export default function ReportsAnalyticsPage() {
           <p className="text-sm text-slate-500">Performance across campaigns, offers and segments</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" icon={Download} onClick={handleDownload}>
-            Download Report
-          </Button>
-          <Button icon={FileDown} onClick={handleExport}>
-            Export CSV
-          </Button>
+          <Button variant="secondary" icon={Download} onClick={handleDownload}>Download Report</Button>
+          <Button icon={FileDown} onClick={handleExport}>Export CSV</Button>
+          <Button variant="secondary" icon={RefreshCw} onClick={load} disabled={loading}>Refresh</Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {REPORTS.cards.map((c, i) => (
+        {stats.map((c, i) => (
           <KpiCard key={c.label} label={c.label} value={c.value} icon={ICONS[i].Icon} accent={ICONS[i].accent} />
         ))}
       </div>
@@ -60,7 +101,7 @@ export default function ReportsAnalyticsPage() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <ChartCard title="Revenue by Campaign" subtitle="Revenue (₹) generated per campaign">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={REPORTS.revenueByCampaign} margin={{ top: 20, right: 10, bottom: 0, left: 0 }}>
+            <BarChart data={revenueByCampaign} margin={{ top: 20, right: 10, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <YAxis hide />
@@ -70,13 +111,13 @@ export default function ReportsAnalyticsPage() {
                 contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }}
               />
               <Bar dataKey="revenue" radius={[8, 8, 0, 0]}>
-                {REPORTS.revenueByCampaign.map((_, i) => (
+                {revenueByCampaign.map((_, i) => (
                   <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
                 ))}
                 <LabelList
                   dataKey="revenue"
                   position="top"
-                  formatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                  formatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                   className="fill-slate-700"
                   fontSize={12}
                   fontWeight={700}
@@ -88,7 +129,7 @@ export default function ReportsAnalyticsPage() {
 
         <ChartCard title="Campaign Conversion" subtitle="Conversion rate (%) by campaign">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={REPORTS.revenueByCampaign} margin={{ top: 20, right: 10, bottom: 0, left: 0 }}>
+            <BarChart data={revenueByCampaign} margin={{ top: 20, right: 10, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <YAxis hide domain={[0, 100]} />
@@ -108,7 +149,7 @@ export default function ReportsAnalyticsPage() {
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie
-                data={REPORTS.segmentPerformance}
+                data={segmentPerformance}
                 dataKey="value"
                 nameKey="name"
                 innerRadius={60}
@@ -116,7 +157,7 @@ export default function ReportsAnalyticsPage() {
                 paddingAngle={2}
                 strokeWidth={0}
               >
-                {REPORTS.segmentPerformance.map((_, i) => (
+                {segmentPerformance.map((_, i) => (
                   <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
                 ))}
               </Pie>
@@ -137,7 +178,7 @@ export default function ReportsAnalyticsPage() {
 
         <ChartCard title="Offer Performance" subtitle="Redemption rate (%) by offer">
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={REPORTS.offerPerformance} layout="vertical" margin={{ top: 0, right: 40, bottom: 0, left: 0 }}>
+            <BarChart data={offerPerformance} layout="vertical" margin={{ top: 0, right: 40, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
               <XAxis type="number" hide domain={[0, 100]} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} width={110} />

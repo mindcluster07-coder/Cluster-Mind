@@ -205,3 +205,137 @@ export function getAdminRecommendations() {
 export function getAdminReports() {
   return adminRequest('/admin/reports')
 }
+
+let marketingApiKey = null
+
+export function setMarketingApiKey(key) {
+  marketingApiKey = key
+}
+
+export function getMarketingApiKey() {
+  return marketingApiKey
+}
+
+async function marketingRequest(path, options = {}) {
+  const key = marketingApiKey || localStorage.getItem('marketing_api_key')
+  if (!key) throw new Error('Marketing API key not set. Call setMarketingApiKey() or login as marketing user.')
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-API-Key': key,
+    ...options.headers,
+  }
+  try {
+    const res = await fetch(`${BASE}/marketing${path}`, {
+      headers,
+      ...options,
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      throw new Error(data.message || 'Marketing API error')
+    }
+    return data
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      return null
+    }
+    throw err
+  }
+}
+
+export function getMarketingOverview() {
+  return marketingRequest('/overview')
+}
+
+export function getMarketingCampaigns(params = {}) {
+  const qs = new URLSearchParams(params).toString()
+  return marketingRequest(`/campaigns${qs ? `?${qs}` : ''}`)
+}
+
+export function getMarketingCampaign(id) {
+  return marketingRequest(`/campaigns/${id}`)
+}
+
+export function createMarketingCampaign(payload) {
+  return marketingRequest('/campaigns', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateMarketingCampaign(id, payload) {
+  return marketingRequest(`/campaigns/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteMarketingCampaign(id) {
+  return marketingRequest(`/campaigns/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export function getMarketingCoupons(params = {}) {
+  const qs = new URLSearchParams(params).toString()
+  return marketingRequest(`/coupons${qs ? `?${qs}` : ''}`)
+}
+
+export function createMarketingCoupon(payload) {
+  return marketingRequest('/coupons', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteMarketingCoupon(id) {
+  return marketingRequest(`/coupons/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export function getMarketingLoyalty(params = {}) {
+  const qs = new URLSearchParams(params).toString()
+  return marketingRequest(`/loyalty${qs ? `?${qs}` : ''}`)
+}
+
+export function createMarketingLoyalty(payload) {
+  return marketingRequest('/loyalty', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteMarketingLoyalty(id) {
+  return marketingRequest(`/loyalty/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export function getMarketingSegments() {
+  return marketingRequest('/segments')
+}
+
+export function getMarketingBehaviors(params = {}) {
+  const qs = new URLSearchParams(params).toString()
+  return marketingRequest(`/behaviors${qs ? `?${qs}` : ''}`)
+}
+
+export function getMarketingRecommendations(params = {}) {
+  const qs = new URLSearchParams(params).toString()
+  return marketingRequest(`/recommendations${qs ? `?${qs}` : ''}`)
+}
+
+export function getMarketingProducts(params = {}) {
+  const qs = new URLSearchParams(params).toString()
+  return marketingRequest(`/products${qs ? `?${qs}` : ''}`)
+}
+
+export function getMarketingProfile() {
+  return marketingRequest('/me')
+}
+
+export function regenerateMarketingApiKey() {
+  return marketingRequest('/api-key/regenerate', {
+    method: 'POST',
+  })
+}

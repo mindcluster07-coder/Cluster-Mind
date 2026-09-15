@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react'
-import { Plus, Pencil } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
+import { Plus, Pencil, Trash2, RefreshCw } from 'lucide-react'
 import Button from '../../components/marketing/Button'
 import SearchBar from '../../components/marketing/SearchBar'
 import CampaignTable from '../../components/marketing/CampaignTable'
 import Modal from '../../components/marketing/Modal'
 import { useToast } from '../../components/marketing/Toast'
-import { CAMPAIGNS } from '../../data/marketingMockData'
+import { getMarketingCampaigns, createMarketingCampaign, updateMarketingCampaign, deleteMarketingCampaign } from '../../api'
+import { CAMPAIGNS as MOCK_CAMPAIGNS } from '../../data/marketingMockData'
 
 const STATUSES = ['All', 'Draft', 'Scheduled', 'Active', 'Completed', 'Paused']
 const SEGMENTS = [
@@ -34,12 +35,23 @@ const inputClass =
 
 export default function CampaignsPage() {
   const { show } = useToast()
-  const [campaigns, setCampaigns] = useState(CAMPAIGNS)
+  const [campaigns, setCampaigns] = useState(MOCK_CAMPAIGNS)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('All')
   const [segment, setSegment] = useState('All Segments')
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [loading, setLoading] = useState(false)
+
+  const load = () => {
+    setLoading(true)
+    getMarketingCampaigns().then((r) => {
+      if (r) setCampaigns(r.items)
+      setLoading(false)
+    })
+  }
+
+  useEffect(load, [])
 
   const filtered = useMemo(() => {
     return campaigns.filter((c) => {
@@ -50,27 +62,38 @@ export default function CampaignsPage() {
     })
   }, [campaigns, search, status, segment])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const newCampaign = {
-      id: Date.now(),
+    const payload = {
       name: form.name,
       segment: form.segment,
       channel: form.channel,
       startDate: form.startDate,
       endDate: form.endDate,
+      offer: form.offer,
+      message: form.message,
       status: 'Draft',
       performance: 0,
     }
-    setCampaigns((c) => [newCampaign, ...c])
+    const res = await createMarketingCampaign(payload)
+    if (res) {
+      setCampaigns((c) => [res, ...c])
+      show(`Campaign "${res.name}" created`, 'success')
+    } else {
+      show('Failed to create campaign (backend unavailable)', 'error')
+    }
     setModalOpen(false)
     setForm(EMPTY_FORM)
-    show(`Campaign "${newCampaign.name}" created as Draft (frontend demo).`, 'success')
   }
 
-  const handleDelete = (c) => {
-    setCampaigns((list) => list.filter((x) => x.id !== c.id))
-    show(`Campaign "${c.name}" deleted (frontend demo).`, 'info')
+  const handleDelete = async (c) => {
+    const res = await deleteMarketingCampaign(c.id)
+    if (res) {
+      setCampaigns((list) => list.filter((x) => x.id !== c.id))
+      show(`Campaign "${c.name}" deleted`, 'info')
+    } else {
+      show('Failed to delete campaign', 'error')
+    }
   }
 
   return (
@@ -80,9 +103,10 @@ export default function CampaignsPage() {
           <h2 className="text-lg font-bold text-slate-900">Campaign Management</h2>
           <p className="text-sm text-slate-500">{filtered.length} campaigns match your filters</p>
         </div>
-        <Button icon={Plus} onClick={() => setModalOpen(true)}>
-          Create Campaign
-        </Button>
+        <div className="flex gap-2">
+          <Button icon={Plus} onClick={() => setModalOpen(true)}>Create Campaign</Button>
+          <Button variant="secondary" icon={RefreshCw} onClick={load} disabled={loading}>Refresh</Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -94,8 +118,7 @@ export default function CampaignsPage() {
               onClick={() => setStatus(s)}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                 status === s ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-violet-300'
-              }`}
-            >
+              }`}>
               {s}
             </button>
           ))}
@@ -103,8 +126,7 @@ export default function CampaignsPage() {
         <select
           value={segment}
           onChange={(e) => setSegment(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-        >
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-400">
           {SEGMENTS.map((s) => (
             <option key={s}>{s}</option>
           ))}
@@ -123,12 +145,8 @@ export default function CampaignsPage() {
         size="lg"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" form="campaign-form">
-              Create Campaign
-            </Button>
+            <Button variant="secondary" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button type="submit" form="campaign-form">Create Campaign</Button>
           </>
         }
       >

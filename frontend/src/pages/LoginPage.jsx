@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 import AuthLayout, { inputClass } from '../components/AuthLayout'
-import { loginUser } from '../api'
+import { loginUser, getMarketingProfile, setMarketingApiKey } from '../api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -21,6 +21,17 @@ export default function LoginPage() {
       localStorage.setItem('shopsmart_token', data.token)
       localStorage.setItem('shopsmart_role', data.role)
       localStorage.setItem('shopsmart_user', JSON.stringify(data.user))
+
+      if (data.role === 'marketing') {
+        try {
+          const profile = await getMarketingProfile()
+          if (profile?.apiKeyCreatedAt) {
+            setMarketingApiKey(localStorage.getItem('marketing_api_key'))
+          }
+        } catch (e) {
+          console.warn('Could not fetch marketing profile:', e)
+        }
+      }
 
       if (data.role === 'admin') {
         navigate('/admin')

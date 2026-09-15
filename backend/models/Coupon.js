@@ -7,6 +7,7 @@ const couponSchema = new mongoose.Schema(
     validTill: Date,
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     used: { type: Boolean, default: false },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'MarketingTeam' },
   },
   { timestamps: true }
 )

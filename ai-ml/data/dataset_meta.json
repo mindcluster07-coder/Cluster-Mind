@@ -1,0 +1,24 @@
+{
+    "columns":  [
+                    "customer_id",
+                    "age",
+                    "annual_income",
+                    "spending_score",
+                    "total_orders",
+                    "avg_order_value",
+                    "segment"
+                ],
+    "target_column":  "segment",
+    "uploaded_at":  "2026-09-10T22:34:44.1733544+05:30",
+    "filename":  "dataset.csv",
+    "dtypes":  {
+                   "annual_income":  "int64",
+                   "age":  "int64",
+                   "avg_order_value":  "int64",
+                   "customer_id":  "object",
+                   "total_orders":  "int64",
+                   "segment":  "object",
+                   "spending_score":  "int64"
+               },
+    "rows":  10
+}

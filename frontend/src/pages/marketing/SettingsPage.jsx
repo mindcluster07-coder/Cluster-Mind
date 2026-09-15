@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { User, Bell, Sparkles, LayoutDashboard, ShieldCheck, Save } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { User, Bell, Sparkles, LayoutDashboard, ShieldCheck, Save, RefreshCw, Key, Copy } from 'lucide-react'
 import Button from '../../components/marketing/Button'
 import { useToast } from '../../components/marketing/Toast'
+import { getMarketingProfile, regenerateMarketingApiKey } from '../../api'
 
 const inputClass =
   'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-100'
@@ -53,17 +54,48 @@ export default function SettingsPage() {
     email: user.email || 'marketing@shopsmart.ai',
     department: 'Marketing Team',
   })
+  const [profile, setProfile] = useState(null)
+  const [apiKey, setApiKey] = useState('')
+  const [loadingKey, setLoadingKey] = useState(false)
+
+  useEffect(() => {
+    getMarketingProfile().then((r) => {
+      if (r) {
+        setProfile(r)
+        setApiKey(r.apiKeyCreatedAt ? '**** (active)' : 'Not set')
+      }
+    })
+  }, [])
 
   const handleSave = (e) => {
     e.preventDefault()
-    show('Settings saved (frontend demo — backend persistence coming later).', 'success')
+    show('Profile settings saved (frontend demo — backend persistence coming).', 'success')
+  }
+
+  const handleRegenerateKey = async () => {
+    setLoadingKey(true)
+    const res = await regenerateMarketingApiKey()
+    if (res) {
+      setApiKey(res.apiKey)
+      show('API key regenerated successfully', 'success')
+    } else {
+      show('Failed to regenerate API key', 'error')
+    }
+    setLoadingKey(false)
+  }
+
+  const copyKey = () => {
+    if (apiKey && !apiKey.startsWith('****')) {
+      navigator.clipboard.writeText(apiKey)
+      show('API key copied to clipboard', 'success')
+    }
   }
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-bold text-slate-900">Settings</h2>
-        <p className="text-sm text-slate-500">Manage profile, preferences and security</p>
+        <p className="text-sm text-slate-500">Manage profile, preferences, API access, and security</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -81,13 +113,29 @@ export default function SettingsPage() {
               <label className="mb-1.5 block text-sm font-medium text-slate-700">Department</label>
               <input className={inputClass} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
             </div>
-            <Button type="submit" icon={Save}>
-              Save Profile
-            </Button>
+            <Button type="submit" icon={Save}>Save Profile</Button>
           </form>
         </SettingsSection>
 
         <div className="space-y-6">
+          <SettingsSection icon={Key} title="API Key" description="Authenticate external services with the Marketing API">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Current Key</label>
+                <div className="flex-1 flex items-center gap-2">
+                  <code className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-mono text-slate-700 select-all">
+                    {apiKey}
+                  </code>
+                  <Button variant="secondary" icon={Copy} size="sm" onClick={copyKey} disabled={apiKey.startsWith('****')}>Copy</Button>
+                  <Button variant="secondary" icon={RefreshCw} size="sm" onClick={handleRegenerateKey} disabled={loadingKey}>
+                    {loadingKey ? 'Regenerating...' : 'Regenerate'}
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">Include in requests as <code className="text-violet-600">X-API-Key</code> header.</p>
+            </div>
+          </SettingsSection>
+
           <SettingsSection icon={Bell} title="Notification Settings" description="Control what you receive">
             <Toggle label="Campaign performance alerts" description="When a campaign crosses a threshold" defaultOn />
             <Toggle label="Segment change alerts" description="When the AI updates a segment" defaultOn />

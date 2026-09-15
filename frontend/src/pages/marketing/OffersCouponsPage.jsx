@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, RefreshCw, Trash2 } from 'lucide-react'
 import Button from '../../components/marketing/Button'
 import ChartCard from '../../components/marketing/ChartCard'
 import DataTable from '../../components/marketing/DataTable'
 import StatusBadge from '../../components/marketing/StatusBadge'
 import Modal from '../../components/marketing/Modal'
 import { useToast } from '../../components/marketing/Toast'
-import { OFFERS, COUPONS } from '../../data/marketingMockData'
+import { getMarketingCoupons, createMarketingCoupon, deleteMarketingCoupon } from '../../api'
+import { OFFERS as MOCK_OFFERS, COUPONS as MOCK_COUPONS } from '../../data/marketingMockData'
 
 const COLUMNS = [
   { key: 'name', label: 'Name', render: (v) => <span className="font-semibold text-slate-900">{v}</span> },
@@ -25,27 +26,55 @@ const EMPTY = { name: '', discount: '', segment: 'All Customers', validFrom: '',
 
 export default function OffersCouponsPage() {
   const { show } = useToast()
-  const [offers, setOffers] = useState(OFFERS)
-  const [coupons, setCoupons] = useState(COUPONS)
+  const [offers, setOffers] = useState(MOCK_OFFERS)
+  const [coupons, setCoupons] = useState(MOCK_COUPONS)
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState(EMPTY)
+  const [loading, setLoading] = useState(false)
 
-  const openCreate = (kind) => {
-    setForm(EMPTY)
-    setModal(kind)
+  const load = () => {
+    setLoading(true)
+    getMarketingCoupons().then((r) => {
+      if (r) setCoupons(r.items)
+      setLoading(false)
+    })
   }
 
-  const handleSubmit = (e) => {
+  useEffect(load, [])
+
+  const openCreate = () => {
+    setForm(EMPTY)
+    setModal('coupon')
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const record = {
-      ...form,
-      type: modal === 'offer' ? 'Offer' : 'Coupon',
+    const payload = {
+      code: form.name,
+      discount: parseFloat(form.discount) || 0,
+      segment: form.segment,
+      validFrom: form.validFrom,
+      validUntil: form.validUntil,
       status: 'Active',
     }
-    if (modal === 'offer') setOffers((o) => [record, ...o])
-    else setCoupons((c) => [record, ...c])
-    show(`${modal === 'offer' ? 'Offer' : 'Coupon'} "${record.name}" created (frontend demo).`, 'success')
+    const res = await createMarketingCoupon(payload)
+    if (res) {
+      setCoupons((c) => [res, ...c])
+      show(`Coupon "${res.code}" created`, 'success')
+    } else {
+      show('Failed to create coupon (backend unavailable)', 'error')
+    }
     setModal(null)
+  }
+
+  const handleDelete = async (c) => {
+    const res = await deleteMarketingCoupon(c.id)
+    if (res) {
+      setCoupons((list) => list.filter((x) => x.id !== c.id))
+      show(`Coupon "${c.code}" deleted`, 'info')
+    } else {
+      show('Failed to delete coupon', 'error')
+    }
   }
 
   return (
@@ -56,12 +85,8 @@ export default function OffersCouponsPage() {
           <p className="text-sm text-slate-500">Discounts and promotion codes by segment</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" icon={Plus} onClick={() => openCreate('offer')}>
-            Create Offer
-          </Button>
-          <Button icon={Plus} onClick={() => openCreate('coupon')}>
-            Create Coupon
-          </Button>
+          <Button variant="secondary" icon={Plus} onClick={openCreate}>Create Coupon</Button>
+          <Button variant="secondary" icon={RefreshCw} onClick={load} disabled={loading}>Refresh</Button>
         </div>
       </div>
 
@@ -70,42 +95,36 @@ export default function OffersCouponsPage() {
       </ChartCard>
 
       <ChartCard title="Coupons" subtitle={`${coupons.length} active coupons`}>
-        <DataTable columns={COLUMNS} rows={coupons} />
+        <DataTable columns={COLUMNS} rows={coupons} onDelete={handleDelete} />
       </ChartCard>
 
       <Modal
         open={modal !== null}
         onClose={() => setModal(null)}
-        title={modal === 'offer' ? 'Create Offer' : 'Create Coupon'}
-        subtitle="New promotion for the selected segment"
+        title="Create Coupon"
+        subtitle="New promotion code for the selected segment"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setModal(null)}>
-              Cancel
-            </Button>
-            <Button type="submit" form="offer-form">
-              {modal === 'offer' ? 'Create Offer' : 'Create Coupon'}
-            </Button>
+            <Button variant="secondary" onClick={() => setModal(null)}>Cancel</Button>
+            <Button type="submit" form="coupon-form">Create Coupon</Button>
           </>
         }
       >
-        <form id="offer-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id="coupon-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              {modal === 'offer' ? 'Offer Name' : 'Coupon Code'}
-            </label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">Coupon Code</label>
             <input
               className={inputClass}
               required
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder={modal === 'offer' ? 'e.g. 20% OFF Accessories' : 'e.g. SAVE500'}
+              placeholder="e.g. SAVE500"
             />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">Discount</label>
-              <input className={inputClass} required value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} placeholder="e.g. 20%" />
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">Discount (%)</label>
+              <input className={inputClass} required value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} placeholder="e.g. 20" />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">Target Segment</label>

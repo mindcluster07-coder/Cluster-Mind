@@ -1,0 +1,11 @@
+customer_id,age,annual_income,spending_score,total_orders,avg_order_value,segment
+C001,25,50000,50,10,150,Premium
+C002,35,80000,80,20,200,Premium
+C003,28,45000,30,5,100,Standard
+C004,42,120000,90,30,300,VIP
+C005,30,60000,60,15,180,Standard
+C006,22,35000,20,3,80,Budget
+C007,38,90000,70,25,250,Premium
+C008,45,150000,95,40,400,VIP
+C009,33,70000,55,12,160,Standard
+C010,29,55000,45,8,120,Budget
