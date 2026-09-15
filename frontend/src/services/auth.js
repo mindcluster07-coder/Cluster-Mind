@@ -1,0 +1,211 @@
+import api, { isBackendReachable } from "./api";
+
+const TOKEN_KEY = "clustermind_token";
+const USER_KEY = "clustermind_user";
+const USERS_KEY = "clustermind_users";
+
+const sleep = (ms = 600) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const isAuthenticated = () => !!localStorage.getItem(TOKEN_KEY);
+
+export const getCurrentUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY) || "null");
+  } catch {
+    return null;
+  }
+};
+
+export const logout = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+};
+
+const DEFAULT_USERS = [
+  {
+    id: "user_demo",
+    fullName: "Rahul Sharma",
+    email: "demo@clustermind.com",
+    phone: "9876543210",
+    password: "demo123",
+    profileImage: "",
+    address: [],
+    role: "customer",
+    loyaltyPoints: 250,
+    createdAt: new Date("2026-01-01").toISOString(),
+    updatedAt: new Date("2026-01-01").toISOString(),
+  },
+];
+
+const getUsers = () => {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    const users = raw ? JSON.parse(raw) : [];
+    for (const demo of DEFAULT_USERS) {
+      if (!users.some((u) => u.email.toLowerCase() === demo.email.toLowerCase())) {
+        users.push(demo);
+      }
+    }
+    return users;
+  } catch {
+    return DEFAULT_USERS;
+  }
+};
+
+const saveUsers = (users) => {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+};
+
+const localLogin = ({ email, password }) =>
+  new Promise((resolve, reject) => {
+    sleep().then(() => {
+      const id = (email || "").toLowerCase();
+      const user = getUsers().find(
+        (u) =>
+          u.password === password &&
+          (u.email.toLowerCase() === id || String(u.phone) === String(email))
+      );
+      if (!user) {
+        reject({ contact: "Invalid mobile number or password" });
+        return;
+      }
+      const token = "fake-jwt-" + Date.now();
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      resolve(user);
+    });
+  });
+
+const localRegister = (data) =>
+  new Promise((resolve, reject) => {
+    sleep().then(() => {
+      const users = getUsers();
+      if (users.some((u) => u.email.toLowerCase() === data.email.toLowerCase())) {
+        reject({ email: "Email already registered" });
+        return;
+      }
+      const user = {
+        id: "user_" + Date.now(),
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        profileImage: "",
+        address: [],
+        role: "customer",
+        loyaltyPoints: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      users.push(user);
+      saveUsers(users);
+      resolve(user);
+    });
+  });
+
+export const fakeLogin = async ({ email, identifier, password }) => {
+  const id = identifier || email;
+  if (await isBackendReachable()) {
+    try {
+      const res = await api.post("/auth/login", { identifier: id, password });
+      const { token, user } = res.data;
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(
+        USER_KEY,
+        JSON.stringify({
+          id: user.id,
+          fullName: user.name,
+          email: user.email || (email?.includes("@") ? email : ""),
+          phone: user.contact,
+          role: user.role || "customer",
+        })
+      );
+      return user;
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        (err?.response?.status === 401 ? "Invalid email or password" : null);
+      if (message) {
+        throw { contact: message };
+      }
+    }
+  }
+  return localLogin({ email: id, password });
+};
+
+export const fakeRegister = async (data) => {
+  if (await isBackendReachable()) {
+    try {
+      const res = await api.post("/auth/register", {
+        name: data.fullName,
+        email: data.email,
+        contact: data.phone,
+        password: data.password,
+      });
+      const { token, user } = res.data;
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(
+        USER_KEY,
+        JSON.stringify({
+          id: user.id,
+          fullName: user.name,
+          email: user.email || data.email,
+          phone: user.contact || data.phone,
+          role: user.role || "customer",
+        })
+      );
+      return user;
+    } catch (err) {
+      const message = err?.response?.data?.message;
+      if (message) {
+        throw { email: message, phone: message };
+      }
+    }
+  }
+  return localRegister(data);
+};
+
+export const fakeSendOtp = (email) =>
+  new Promise((resolve, reject) => {
+    sleep().then(() => {
+      if (!getUsers().some((u) => u.email.toLowerCase() === email.toLowerCase())) {
+        reject({ email: "No account found with this email" });
+        return;
+      }
+      resolve("123456");
+    });
+  });
+
+export const fakeVerifyOtp = (otp) =>
+  new Promise((resolve, reject) => {
+    sleep().then(() => {
+      if (otp === "123456") resolve(true);
+      else reject({ otp: "Invalid OTP" });
+    });
+  });
+
+export const fakeResetPassword = async (email, password) => {
+  if (await isBackendReachable()) {
+    try {
+      await api.post("/auth/forgot-password", { email, password });
+      return true;
+    } catch (err) {
+      const message = err?.response?.data?.message;
+      if (message) {
+        throw { email: message };
+      }
+    }
+  }
+  return new Promise((resolve) => {
+    sleep().then(() => {
+      const users = getUsers();
+      const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (user) {
+        user.password = password;
+        user.updatedAt = new Date().toISOString();
+        saveUsers(users);
+      }
+      resolve(true);
+    });
+  });
+};

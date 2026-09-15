@@ -1,12 +1,1 @@
-{
-  "name": "clustermind",
-  "private": true,
-  "version": "0.1.0",
-  "workspaces": ["frontend", "backend"],
-  "scripts": {
-    "dev:frontend": "npm run dev --workspace frontend",
-    "dev:backend": "npm run dev --workspace backend",
-    "dev:ml": "uvicorn --app-dir ai-ml main:app --reload --port 8000",
-    "seed": "npm run seed --workspace backend"
-  }
-}
+{"name":"clustermind","private":true,"version":"1.0.0","workspaces":["frontend","backend"],"scripts":{"dev:frontend":"npm run dev --workspace frontend","dev:backend":"npm run dev --workspace backend","dev:ml":"uvicorn --app-dir ai-ml main:app --reload --port 8000","build":"npm run build --workspace frontend","seed":"npm run seed --workspace backend"}}

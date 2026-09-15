@@ -1,0 +1,43 @@
+:root{
+
+  --primary:#4F46E5;
+  --primary-hover:#4338CA;
+
+  --customer:#7C3AED;
+
+  --admin:#2563EB;
+  --secondary-blue:#2563EB;
+
+  --marketing:#16A34A;
+
+  --sidebar:#0F172A;
+  --sidebar-hover:#1E293B;
+  --sidebar-active:#4F46E5;
+
+  --background:#F8FAFC;
+
+  --card:#FFFFFF;
+
+  --border:#E2E8F0;
+
+  --text:#111827;
+
+  --secondary:#6B7280;
+
+  --success:#22C55E;
+
+  --warning:#F59E0B;
+
+  --danger:#EF4444;
+
+  --ai-gradient:linear-gradient(135deg,#4F46E5,#7C3AED);
+
+  --shadow:0 8px 25px rgba(15,23,42,0.06);
+
+  --radius-card:18px;
+
+  --radius-btn:12px;
+
+  --radius-input:12px;
+
+}

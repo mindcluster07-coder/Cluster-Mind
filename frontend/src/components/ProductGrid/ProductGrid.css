@@ -1,0 +1,56 @@
+.products-grid{
+
+display:grid;
+
+grid-template-columns:repeat(3,1fr);
+
+gap:20px;
+
+}
+
+@media(max-width:1200px){
+
+.products-grid{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+@media(max-width:600px){
+
+.products-grid{
+
+grid-template-columns:1fr;
+
+}
+
+}
+
+.empty-state{
+
+background:#fff;
+
+border-radius:18px;
+
+padding:60px 20px;
+
+text-align:center;
+
+box-shadow:0 8px 20px rgba(0,0,0,.06);
+
+}
+
+.empty-state h3{
+
+font-family:Poppins;
+
+margin-bottom:8px;
+
+}
+
+.empty-state p{
+
+color:#6B7280;
+}
